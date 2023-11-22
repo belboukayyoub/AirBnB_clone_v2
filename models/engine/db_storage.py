@@ -15,23 +15,17 @@ from os import getenv
 if getenv('HBNB_TYPE_STORAGE') == 'db':
     from models.place import place_amenity
 
-classes = {
-    "User": User,
-    "State": State,
-    "City": City,
-    "Amenity": Amenity,
-    "Place": Place,
-    "Review": Review
-}
+classes = {"User": User, "State": State, "City": City,
+           "Amenity": Amenity, "Place": Place, "Review": Review}
 
 
 class DBStorage:
-    """This class manages storage of hbnb models in mysql database"""
+    '''database storage engine for mysql storage'''
     __engine = None
     __session = None
 
     def __init__(self):
-        """instantiate new dbstorage instance"""
+        '''instantiate new dbstorage instance'''
         HBNB_MYSQL_USER = getenv('HBNB_MYSQL_USER')
         HBNB_MYSQL_PWD = getenv('HBNB_MYSQL_PWD')
         HBNB_MYSQL_HOST = getenv('HBNB_MYSQL_HOST')
@@ -39,21 +33,21 @@ class DBStorage:
         HBNB_ENV = getenv('HBNB_ENV')
         self.__engine = create_engine(
             'mysql+mysqldb://{}:{}@{}/{}'.format(
-                HBNB_MYSQL_USER,
-                HBNB_MYSQL_PWD,
-                HBNB_MYSQL_HOST,
-                HBNB_MYSQL_DB
-            ), pool_pre_ping=True)
+                                           HBNB_MYSQL_USER,
+                                           HBNB_MYSQL_PWD,
+                                           HBNB_MYSQL_HOST,
+                                           HBNB_MYSQL_DB
+                                       ), pool_pre_ping=True)
 
         if HBNB_ENV == 'test':
             Base.metadata.drop_all(self.__engine)
 
     def all(self, cls=None):
-        """query all objects depending of the class name
-        Return a dictionary: (like FileStorage)
+        '''query on the current db session all cls objects
+        this method must return a dictionary: (like FileStorage)
         key = <class-name>.<object-id>
         value = object
-        """
+        '''
         dct = {}
         if cls is None:
             for c in classes.values():
@@ -69,7 +63,7 @@ class DBStorage:
         return dct
 
     def new(self, obj):
-        """Add the object to the current database session"""
+        '''adds the obj to the current db session'''
         if obj is not None:
             try:
                 self.__session.add(obj)
@@ -80,17 +74,19 @@ class DBStorage:
                 raise ex
 
     def save(self):
-        """Commit all changes of the current database session"""
+        '''commit all changes of the current db session'''
         self.__session.commit()
 
     def delete(self, obj=None):
-        """Delete from the current database session"""
+        ''' deletes from the current databse session the obj
+            is it's not None
+        '''
         if obj is not None:
             self.__session.query(type(obj)).filter(
                 type(obj).id == obj.id).delete()
 
     def reload(self):
-        """reloads the database"""
+        '''reloads the database'''
         Base.metadata.create_all(self.__engine)
         session_factory = sessionmaker(bind=self.__engine,
                                        expire_on_commit=False)
